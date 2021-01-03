@@ -244,10 +244,10 @@ int OpenFile(char *filename,int Permission)
 //	Author: Vinayak Mahendra Patil
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int WriteFile(int fd,char *filename,char *data)
+int WriteFile(int fd,char *data)
 {
     int iRet=0;
-    if((UFDTarr[fd].pFileTable==NULL)||(filename==NULL)||(data==NULL))
+    if((UFDTarr[fd].pFileTable==NULL)||(data==NULL))
     {
         return ERR_IncorrectParameters;
     }
