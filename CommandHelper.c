@@ -17,6 +17,7 @@ void ls_File()
         printf("There are no files!\n");
         return;
     }
+    printf("--------------------------------------------------------------------------------------------------------------------\n");
     printf("File Name\tInode Number\tRef Count\tFile Mode\tFile Size\tFile Actual size\n");
     printf("--------------------------------------------------------------------------------------------------------------------\n");
     while(temp!=NULL)
@@ -55,6 +56,8 @@ void DisplayHelp()
     printf("stat\t\t:-Display information of a file from iNode table.\n");
     printf("fstat\t\t:-Display information of a file from iNode table through File table if the file is open.\n");
     printf("truncate\t:-Removes all data from the file.\n");
+    printf("backup\t\t:-Creates a 'BackupFile' and writes all the virtual file's data along with its metadata.\n");
+    printf("restore\t\t:-Reads 'BackupFile' created by backup command and creates all the virtual files according to its meta data.\n");
     printf("exit\t\t:-Close application.\n");
 }
 
@@ -105,8 +108,9 @@ void ls_OpenFile()
         printf("Error: No files created!\n");
         return;
     }
+    printf("-----------------------------------------------------------------------------------------------------------------\n");
     printf("File Descriptor\tFilename\tInode Number\tFile mode\tWriteOffeset\tReadOffset\tRef Count\n");
-    printf("-------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------------------------------------------\n");
     while(i<MAX_INODES)
     {
         if(UFDTarr[i].pFileTable!=NULL)
@@ -126,7 +130,7 @@ void ls_OpenFile()
     {
         printf("No Open files in descriptor!\n");
     }
-    printf("-------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------------------------------------------\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,13 +172,15 @@ void Man(char *cmd)
     }
     else if(strcasecmp(cmd,"write")==0)
     {
-        printf("Writes to a file with specified name if the file is opened in the descriptor table.\n");
+        printf("Writes to a file with specified name or file descriptor number if the file is opened in the descriptor table.\n");
         printf("Usage: write [File_Name]\n");
+        printf("Usage: write -fd [File_Descriptor]\n");
     }
     else if(strcasecmp(cmd,"read")==0)
     {
         printf("Reads number of bytes from a file.\n");
         printf("Usage: read [File_Name] [Number_Of_Bytes]\n");
+        printf("Usage: read -fd [File_Descriptor] [Number_Of_Bytes]\n");
     }
     else if(strcasecmp(cmd,"stat")==0)
     {
@@ -199,7 +205,7 @@ void Man(char *cmd)
     else if(strcasecmp(cmd,"rm")==0)
     {
         printf("Used to delete file of a specified name.\n");
-        printf("Usage: rm File_Name");
+        printf("Usage: rm File_Name\n");
     }
     else
     {
@@ -470,7 +476,7 @@ int Restore()
         iRet=CreateFile(FileName,atoi(&Permission));
         if(iRet >= 0)
         {
-            WriteFile(iRet,FileName,FileData);
+            WriteFile(iRet,FileData);
             CloseFileByName(FileName);
             iCnt++;
         }
@@ -489,8 +495,8 @@ int Restore()
         }
         else if(iRet==ERR_MemAllocationFailure)
         {
-        printf("Error: Failed to allocate memory!\n");
-        break;
+            printf("Error: Failed to allocate memory!\n");
+            break;
         }
         iRet=iCnt;
     }
@@ -500,7 +506,6 @@ int Restore()
     }
     free(StrData);
     return iCnt;
-
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
