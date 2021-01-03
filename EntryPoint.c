@@ -3,18 +3,23 @@ extern FILE *stdin;
 
 int main(int argc, char const *argv[])
 {
+    char cPWD[MAX_FILE_SiZE] = {0};
+    if(getcwd(cPWD,MAX_FILE_SiZE-1)==NULL)
+    {
+        printf("Error: Unable to get current working directory...!");
+        return -1;
+    }
     char cmd[4][80],str[80],arr[MAX_FILE_SiZE];
     int iRet=0,fd=0,count=0;
     char *ptr=NULL;
     PINODE temp,temp2;
     InitializeSuperBlock();
     CreateDILB();
-
     while(1)
     {
         str[0]='\0';
         fflush(stdin);
-        printf("%s",PWD);
+        printf("%s$ ",cPWD);
         fgets(str,80,stdin);
         count = sscanf(str,"%s %s %s %s",cmd[0],cmd[1],cmd[2],cmd[3]);
 
@@ -142,7 +147,7 @@ int main(int argc, char const *argv[])
                     printf("File found with file descriptor %d.\n",iRet);
                     printf("Enter the data:-");
                     fgets(arr,MAX_FILE_SiZE,stdin);
-                    iRet=WriteFile(iRet,cmd[1],arr);
+                    iRet=WriteFile(iRet,arr);
                     if(iRet==ERR_IncorrectParameters)
                     {
                         printf("Error: Incorrect input!\n");
@@ -234,7 +239,7 @@ int main(int argc, char const *argv[])
                 }
                 else if(iRet>0)
                 {
-                    printf("Error: File has successfully deleted!\n");
+                    printf("Success: File has successfully deleted!\n");
                 }
             }
             else
@@ -297,6 +302,51 @@ int main(int argc, char const *argv[])
                     printf("Error: Incorrect parameters!\n");
                 }
             }
+            else if(strcasecmp(cmd[0],"write")==0)
+            {
+                if(strcasecmp(cmd[1],"-fd")==0)
+                {
+                    int iValue = atoi(cmd[2]);
+                    char cTemp[3] = {0};
+                    sprintf(cTemp,"%d",iValue);
+                    if(iValue <0 || iValue >= MAX_INODES || (strcasecmp(cTemp,cmd[2])!=0))
+                    {
+                        printf("Error: Invalid Fd!\n");
+                    }
+                    else
+                    {
+                        printf("Enter the data:-");
+                        fgets(arr,MAX_FILE_SiZE,stdin);
+                        iRet=WriteFile(iValue,arr);
+                        if(iRet==ERR_IncorrectParameters)
+                        {
+                            printf("Error: Incorrect input!\n");
+                        }
+                        else if(iRet==ERR_AccessDenied)
+                        {
+                            printf("Error: Access denied!\n");
+                        }
+                        else if(iRet==ERR_NoMemory)
+                        {
+                            printf("Error: Memory full!\n");
+                        }
+                        else if(iRet==ERR_InvalidFileType)
+                        {
+                            printf("Error: File is not regular!\n");
+                        }
+                        else if(iRet>=0)
+                        {
+                            printf("Success: Written %d bytes to file descriptor %d.\n",iRet,iValue);
+                        }
+                    }                    
+
+                }
+                else
+                {
+                    printf("Error: Command not found!\n Try 'help'\n");
+                }
+                
+            }
             else if(strcasecmp(cmd[0],"read")==0)
             {
                 iRet=GetFdByMode(cmd[1],READ);
@@ -338,6 +388,7 @@ int main(int argc, char const *argv[])
                     {
                         printf("Read values:%s\n",ptr);
                     }
+                    free(ptr);
                 }
             }
             else
@@ -361,6 +412,53 @@ int main(int argc, char const *argv[])
                     printf("Error: Incorrect parameters!\n");
                 }
             }
+            else if(strcasecmp(cmd[0],"read")==0)
+            {
+                if(strcasecmp(cmd[1],"-fd")==0)
+                {
+                    int iValue = atoi(cmd[2]);
+                    if(iValue <0 || iValue >= MAX_INODES )
+                    {
+                        printf("Error: Invalid Fd!\n");
+                    }
+                    else
+                    {
+                        printf("File found with file descriptor %d.\n",iValue);
+                        ptr= (char *) malloc(sizeof(atoi(cmd[3]))+1);
+                        if(ptr==NULL)
+                        {
+                            printf("Error: Insufficient memeory!\n");
+                            continue;
+                        } 
+                        iRet=ReadFile(iValue,ptr,atoi(cmd[3]));
+                        if(iRet==ERR_IncorrectParameters)
+                        {
+                            printf("Error: Incorrect parameters!\n");
+                        }
+                        else if(iRet==ERR_AccessDenied)
+                        {
+                            printf("Error: Access Denied!\n");
+                        }
+                        else if(iRet==ERR_NoDataFurther)
+                        {
+                            printf("Error: Offset at end!\n");
+                        }
+                        else if(iRet==ERR_InvalidFileType)
+                        {
+                            printf("Error: File is not regular!\n");
+                        }
+                        else if(iRet>0)
+                        {
+                            printf("Read values:%s\n",ptr);
+                        }
+                        free(ptr);
+                    }
+                }
+                else
+                {
+                    printf("Error: Command not found!\n Try 'help'\n");
+                }
+            }
             else
             {
                 printf("Error: Command not found!\n");    
@@ -372,6 +470,6 @@ int main(int argc, char const *argv[])
         }
     
     }
-    printf("Reach\n");
+    printf("Exiting application...!\n");
     return 0;
 }
